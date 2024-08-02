@@ -2,33 +2,48 @@ using DG.Tweening;
 using Sirenix.OdinInspector;
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 
-public class ArrowPz : MonoBehaviour, ITile
+public class ArrowPz : TileBase
 {
-    int x, y;
-    public MapTile mapTile { get => throw new System.NotImplementedException(); set => throw new System.NotImplementedException(); }
-    public int X { get => x; set => x = value; }
-    public int Y { get => x; set => x = value; }
-    public Type_Tile Type { get => Type_Tile.Arrow; }
+    public override Type_Tile Type { get => Type_Tile.Arrow; }
+
 
     [SerializeField, EnumToggleButtons, HideLabel] Direction direction;
-
-    public void OnDestroyTile()
+    protected override void Awake()
     {
+        base.Awake();
+        mapTile.onMoveTile += OnMove1Tile;
+    }
+    public override void OnDestroyTile()
+    {
+        mapTile.TotalArrow--;
+        base.OnDestroyTile();
     }
 
-    public void OnMove1Tile(int _x, int _y)
+    public override void OnMove1Tile(int _x, int _y)
     {
+        base.OnMove1Tile(_x, _y);
     }
 
-    public void OnTap()
+    public override void OnTap()
     {
+        base.OnTap();
+        MoveTile();
     }
 
-    public void SetMapTile(MapTile mapTile)
+    public override void SetMapTile(MapTile mapTile)
     {
+        base.SetMapTile(mapTile);
     }
+    #region Button Inspector
+    [Button("Set Visual Tile")]
+    public override void SetVisual()
+    {
+        mainSprite.GetComponent<SpriteRenderer>().sprite = TilePreset.Instance.GetAssetArrow(direction);
+    }
+    #endregion
 
     Node targetFind = null;
     [BoxGroup("Move Tile"), Button("Find target node", ButtonSizes.Medium)]
@@ -93,6 +108,12 @@ public class ArrowPz : MonoBehaviour, ITile
         }
         if (mapTile.nodes[nextX, nextY].HaveTile)
         {
+            if (mapTile.nodes[nextX, nextY].GetTile().Type == Type_Tile.Saw_Blade)
+            {
+                Debug.Log("1");
+                target = mapTile.nodes[nextX, nextY];
+                return false;
+            }
             switch (direction)
             {
                 case Direction.LEFT:
@@ -111,21 +132,30 @@ public class ArrowPz : MonoBehaviour, ITile
             if (nextX == x && nextY == y)
                 target = null;
             else
+            {
                 target = mapTile.nodes[nextX, nextY];
+                Debug.Log("2");
+            }
             return false;
         }
         else
         {
+            // check if node is change direction node?
+
             resultX = nextX;
             resultY = nextY;
             target = mapTile.nodes[nextX, nextY];
+            if (target.IsNodeChangeDirection())
+                return false;
             return FindtargetNode(out targetFind);
         }
     }
     [BoxGroup("Move Tile"), Button("Move"), GUIColor(0, 1, .03f)]
-    public void MoveTile()
+    public void MoveTile(bool isNewMove = true)
     {
-        mapTile.onMoveTile?.Invoke(x, y);
+        if (TypeOverlay != Type_Overlay.None) return;
+        if (isNewMove)
+            mapTile.onMoveTile?.Invoke(x, y);
         resultX = x; resultY = y;
         if (!FindtargetNode(out targetFind))
         {
@@ -136,12 +166,24 @@ public class ArrowPz : MonoBehaviour, ITile
             else
             {
                 Debug.LogError("Find " + targetFind.name);
-                transform.DOMove(targetFind.transform.position, .2f)
+                transform.DOMove(targetFind.transform.position, .5f)
                     .OnComplete(() =>
                     {
-                        mapTile.nodes[x, y].SetTile(itile: null);
+                        if (targetFind.GetTile().Type == Type_Tile.Saw_Blade)
+                        {
+                            OnDestroyTile();
+                            return;
+                        }
+                        mapTile.nodes[x, y].SetTile(null);
                         targetFind.SetTile(this);
+                        X = targetFind.X; Y = targetFind.Y;
                         transform.SetParent(targetFind.transform);
+                        if (targetFind.IsNodeChangeDirection())
+                        {
+                            direction = targetFind.GetDirection();
+                            MoveTile(false);
+                        }
+
                     });
             }
         }
@@ -167,16 +209,14 @@ public class ArrowPz : MonoBehaviour, ITile
             transform.DOMove(target, .2f)
                 .OnComplete(() =>
                 {
-                    //Debug.Log(gameObject.name);
-                    gameObject.SetActive(false);
-                    //mapTile.RemoveTile(this);
+                    Debug.Log(gameObject.name);
+                    OnDestroyTile();
                 });
             Debug.LogError("Out");
         }
-        //// Check target node
-        //if (!FindtargetNode(out Node tar))
-        //{
-
-        //}
+    }
+    private void OnDisable()
+    {
+        mapTile.onMoveTile -= OnMove1Tile;
     }
 }

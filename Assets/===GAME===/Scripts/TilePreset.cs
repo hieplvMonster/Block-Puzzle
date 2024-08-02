@@ -17,7 +17,13 @@ public class TilePreset : ScriptableObject
         }
     }
     [SerializeField] List<Sprite> sprites = new List<Sprite>();
+    [SerializeField] Sprite spritesStone;
+    [SerializeField] Sprite spritesBomb;
+    [SerializeField] Sprite spritesSawBlade;
 
     public Sprite GetAssetArrow(Direction direction) => sprites[(int)direction];
+    public Sprite GetAssetStone() => spritesStone;
+    public Sprite GetAssetBomb() => spritesBomb;
+    public Sprite GetAssetSawBlade() => spritesSawBlade;
 
 }

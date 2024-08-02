@@ -21,8 +21,14 @@ public enum Type_Tile
     Rotate,
     Stone,
     Bomb,
-    Freeze,
-    Hidden
+    Change_Direction,
+    Saw_Blade
+}
+public enum Type_Overlay
+{
+    None,
+    Hidden,
+    Freeze
 }
 public interface ITile
 {

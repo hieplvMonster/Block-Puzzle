@@ -7,7 +7,10 @@ using UnityEngine;
 public class GridGeneratorEditor : EditorWindow
 {
     private GameObject nodePrefab;
-    private GameObject tilePrefab;
+    private ArrowPz tilePrefab;
+    private StonePz stonePrefab;
+    private SawBladePz sawBladePrefab;
+    private BombPz bombPrefab;
     private int gridWidth = 5;
     private int gridHeight = 5;
     private float nodeSpacing = 1.5f;
@@ -26,7 +29,10 @@ public class GridGeneratorEditor : EditorWindow
         GUILayout.Label("Grid Settings", EditorStyles.boldLabel);
 
         nodePrefab = (GameObject)EditorGUILayout.ObjectField("Node Prefab", nodePrefab, typeof(GameObject), false);
-        tilePrefab = (GameObject)EditorGUILayout.ObjectField("Tile Prefab", tilePrefab, typeof(GameObject), false);
+        tilePrefab = (ArrowPz)EditorGUILayout.ObjectField("Arrow block", tilePrefab, typeof(ArrowPz), false);
+        stonePrefab = (StonePz)EditorGUILayout.ObjectField("Stone block", stonePrefab, typeof(StonePz), false);
+        sawBladePrefab = (SawBladePz)EditorGUILayout.ObjectField("Saw blade block", sawBladePrefab, typeof(SawBladePz), false);
+        bombPrefab = (BombPz)EditorGUILayout.ObjectField("Bomb block", bombPrefab, typeof(BombPz), false);
         gridWidth = EditorGUILayout.IntField("Grid Width", gridWidth);
         gridHeight = EditorGUILayout.IntField("Grid Height", gridHeight);
         nodeSpacing = EditorGUILayout.FloatField("Node Spacing", nodeSpacing);
@@ -46,6 +52,9 @@ public class GridGeneratorEditor : EditorWindow
 
         EditorGUILayout.BeginVertical();
         CreateTile();
+        CreateStoneBlock();
+        CreateSawBladeBlock();
+        CreateBombBlock();
         DeleteTile();
         EditorGUILayout.EndVertical();
     }
@@ -63,7 +72,7 @@ public class GridGeneratorEditor : EditorWindow
                 return;
             }
             Debug.Log($"Destroy Tile! at {_node.name}");
-            //_node.ShowTitle(true);
+            _node.GetMapTile().RemoveTile(_node.GetTile());
             DestroyImmediate(_node.GetTile().gameObject);
         }
     }
@@ -72,25 +81,95 @@ public class GridGeneratorEditor : EditorWindow
     {
         if (Selection.count == 0) return;
         Selection.activeGameObject.TryGetComponent<Node>(out Node _node);
-        if (GUILayout.Button("Create Tile"))
+        if (GUILayout.Button("Create Arrow"))
         {
             if (_node is null)
             {
                 Debug.LogError("Selected game object is not Node!");
                 return;
             }
-            TilePz o = Instantiate(tilePrefab, Vector3.zero, Quaternion.identity).GetComponent<TilePz>();
+            ArrowPz o = Instantiate(tilePrefab, Vector3.zero, Quaternion.identity).GetComponent<ArrowPz>();
             o.transform.SetParent(_node.transform);
             _node.SetTile(o);
-            //o.SetVisual();
-            _node.GetMapTile().AddTile(o.GetComponent<TilePz>());
+            o.X = _node.X; o.Y = _node.Y;
+            Debug.Log($"Set Tile {o.X},{o.Y} with node {_node.X},{_node.Y}");
+            o.SetVisual();
+            _node.GetMapTile().AddTile(o);
+            _node.GetMapTile().TotalArrow++;
             //_node.ShowTitle(false);
             o.transform.localPosition
                 = Vector3.zero;
-            Debug.Log($"Create Tile! at {_node.name}");
         }
     }
-
+    private void CreateStoneBlock()
+    {
+        if (Selection.count == 0) return;
+        Selection.activeGameObject.TryGetComponent<Node>(out Node _node);
+        if (GUILayout.Button("Create Stone"))
+        {
+            if (_node is null)
+            {
+                Debug.LogError("Selected game object is not Node!");
+                return;
+            }
+            StonePz o = Instantiate(stonePrefab, Vector3.zero, Quaternion.identity).GetComponent<StonePz>();
+            o.transform.SetParent(_node.transform);
+            _node.SetTile(o);
+            o.X = _node.X; o.Y = _node.Y;
+            Debug.Log($"<color=gray>Set Stone {o.X},{o.Y} with node {_node.X},{_node.Y}</color>");
+            o.SetVisual();
+            _node.GetMapTile().AddTile(o);
+            //_node.ShowTitle(false);
+            o.transform.localPosition
+                = Vector3.zero;
+        }
+    }
+    private void CreateSawBladeBlock()
+    {
+        if (Selection.count == 0) return;
+        Selection.activeGameObject.TryGetComponent<Node>(out Node _node);
+        if (GUILayout.Button("Create Saw Blade"))
+        {
+            if (_node is null)
+            {
+                Debug.LogError("Selected game object is not Node!");
+                return;
+            }
+            SawBladePz o = Instantiate(sawBladePrefab, Vector3.zero, Quaternion.identity).GetComponent<SawBladePz>();
+            o.transform.SetParent(_node.transform);
+            _node.SetTile(o);
+            o.X = _node.X; o.Y = _node.Y;
+            Debug.Log($"<color=gray>Set Saw Blade {o.X},{o.Y} with node {_node.X},{_node.Y}</color>");
+            o.SetVisual();
+            _node.GetMapTile().AddTile(o);
+            //_node.ShowTitle(false);
+            o.transform.localPosition
+                = Vector3.zero;
+        }
+    }
+    private void CreateBombBlock()
+    {
+        if (Selection.count == 0) return;
+        Selection.activeGameObject.TryGetComponent<Node>(out Node _node);
+        if (GUILayout.Button("Create Bomb"))
+        {
+            if (_node is null)
+            {
+                Debug.LogError("Selected game object is not Node!");
+                return;
+            }
+            BombPz o = Instantiate(bombPrefab, Vector3.zero, Quaternion.identity).GetComponent<BombPz>();
+            o.transform.SetParent(_node.transform);
+            _node.SetTile(o);
+            o.X = _node.X; o.Y = _node.Y;
+            Debug.Log($"<color=orange>Set Bomb {o.X},{o.Y} with node {_node.X},{_node.Y}</color>");
+            o.SetVisual();
+            _node.GetMapTile().AddTile(o);
+            //_node.ShowTitle(false);
+            o.transform.localPosition
+                = Vector3.zero;
+        }
+    }
     private void GenerateGrid()
     {
         num++;

@@ -1,3 +1,4 @@
+using Sirenix.OdinInspector;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -12,7 +13,14 @@ public class Node : MonoBehaviour
     public int Y => _y;
 
     public MapTile map;
+
+    [SerializeField] bool isChangeDirection = false;
+
+    [ShowIf(nameof(isChangeDirection)), SerializeField, EnumToggleButtons, HideLabel]
+    Direction direction;
     //[SerializeField] TMP_Text txtTitle;
+
+    #region PUBLIC METHOD
     public MapTile GetMapTile() => map;
     public void Setup(int x, int y, MapTile map)
     {
@@ -21,24 +29,23 @@ public class Node : MonoBehaviour
         this.map = map;
         //txtTitle.text = $"{_x},{_y}";
     }
-    [SerializeField] TilePz tile;
-    public void SetTile(TilePz tile)
+    [SerializeField] TileBase tile;
+    public void SetTile(TileBase tile)
     {
         this.tile = tile;
-        if (tile == null) return;
-        tile.x = X;
-        tile.y = _y;
+        //if (tile == null) return;
+        //tile.X = X;
+        //tile.X = Y;
     }
-    public bool HaveTile => transform.childCount > 0;
-    public TilePz GetTile() => tile;
-
-    ITile iTile;
-    public void SetTile(ITile itile)
+    public bool HaveTile => tile != null;
+    public TileBase GetTile() => tile;
+    public bool IsNodeChangeDirection()
     {
-        iTile = itile;
-        itile.X = X;
-        itile.Y = Y;
+        return isChangeDirection;
     }
+    public Direction GetDirection() => direction;
+    #endregion
+
     private void OnGUI()
     {
         Vector3 screenPos = Camera.main.WorldToScreenPoint(transform.position);
