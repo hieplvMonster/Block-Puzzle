@@ -11,6 +11,7 @@ public class GridGeneratorEditor : EditorWindow
     private StonePz stonePrefab;
     private SawBladePz sawBladePrefab;
     private BombPz bombPrefab;
+    private TurningPz turningPrefab;
     private int gridWidth = 5;
     private int gridHeight = 5;
     private float nodeSpacing = 1.5f;
@@ -33,6 +34,7 @@ public class GridGeneratorEditor : EditorWindow
         stonePrefab = (StonePz)EditorGUILayout.ObjectField("Stone block", stonePrefab, typeof(StonePz), false);
         sawBladePrefab = (SawBladePz)EditorGUILayout.ObjectField("Saw blade block", sawBladePrefab, typeof(SawBladePz), false);
         bombPrefab = (BombPz)EditorGUILayout.ObjectField("Bomb block", bombPrefab, typeof(BombPz), false);
+        turningPrefab = (TurningPz)EditorGUILayout.ObjectField("Turning block", turningPrefab, typeof(TurningPz), false);
         gridWidth = EditorGUILayout.IntField("Grid Width", gridWidth);
         gridHeight = EditorGUILayout.IntField("Grid Height", gridHeight);
         nodeSpacing = EditorGUILayout.FloatField("Node Spacing", nodeSpacing);
@@ -55,6 +57,7 @@ public class GridGeneratorEditor : EditorWindow
         CreateStoneBlock();
         CreateSawBladeBlock();
         CreateBombBlock();
+        CreateTurningBlock();
         DeleteTile();
         EditorGUILayout.EndVertical();
     }
@@ -72,8 +75,9 @@ public class GridGeneratorEditor : EditorWindow
                 return;
             }
             Debug.Log($"Destroy Tile! at {_node.name}");
-            _node.GetMapTile().RemoveTile(_node.GetTile());
-            DestroyImmediate(_node.GetTile().gameObject);
+            //_node.GetMapTile().RemoveTile(_node.GetTile());
+            //DestroyImmediate(_node.GetTile().gameObject);
+            _node.GetTile().OnDestroyTile();
         }
     }
 
@@ -96,6 +100,7 @@ public class GridGeneratorEditor : EditorWindow
             o.SetVisual();
             _node.GetMapTile().AddTile(o);
             _node.GetMapTile().TotalArrow++;
+            o.AddActionOnMoveTile();
             //_node.ShowTitle(false);
             o.transform.localPosition
                 = Vector3.zero;
@@ -163,6 +168,29 @@ public class GridGeneratorEditor : EditorWindow
             _node.SetTile(o);
             o.X = _node.X; o.Y = _node.Y;
             Debug.Log($"<color=orange>Set Bomb {o.X},{o.Y} with node {_node.X},{_node.Y}</color>");
+            o.SetVisual();
+            _node.GetMapTile().AddTile(o);
+            //_node.ShowTitle(false);
+            o.transform.localPosition
+                = Vector3.zero;
+        }
+    }
+    private void CreateTurningBlock()
+    {
+        if (Selection.count == 0) return;
+        Selection.activeGameObject.TryGetComponent<Node>(out Node _node);
+        if (GUILayout.Button("Create Turning"))
+        {
+            if (_node is null)
+            {
+                Debug.LogError("Selected game object is not Node!");
+                return;
+            }
+            TurningPz o = Instantiate(turningPrefab, Vector3.zero, Quaternion.identity).GetComponent<TurningPz>();
+            o.transform.SetParent(_node.transform);
+            _node.SetTile(o);
+            o.X = _node.X; o.Y = _node.Y;
+            Debug.Log($"<color=orange>Set Turning {o.X},{o.Y} with node {_node.X},{_node.Y}</color>");
             o.SetVisual();
             _node.GetMapTile().AddTile(o);
             //_node.ShowTitle(false);

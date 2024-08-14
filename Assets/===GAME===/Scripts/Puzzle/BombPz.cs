@@ -11,6 +11,12 @@ public class BombPz : TileBase
     {
         // TODO
         // ANimation exlosion bomb
+        CheckTileAround();
+        for (int i = 0; i < tilesCheck.Count; i++)
+        {
+            var x = tilesCheck[i];
+            x.OnDestroyTile();
+        }
         base.OnDestroyTile();
     }
 
@@ -21,15 +27,11 @@ public class BombPz : TileBase
         base.SetMapTile(mapTile);
     }
     [BoxGroup("Explode Tile"), Button("Explode"), GUIColor(1, .67f, 0)]
-    public override void OnTap()
+    public override void OnTap(out bool canTap)
     {
         // Show 
-        CheckTileAround();
-        for (int i = 0; i < tilesCheck.Count; i++)
-        {
-            var x = tilesCheck[i];
-            x.OnDestroyTile();
-        }
+        canTap = true;
+        mapTile.onMoveTile?.Invoke(x, y);
         OnDestroyTile();
     }
     [BoxGroup("Explode Tile"), Button("CheckTileAround")]
@@ -51,4 +53,5 @@ public class BombPz : TileBase
     {
         mainSprite.GetComponent<SpriteRenderer>().sprite = TilePreset.Instance.GetAssetBomb();
     }
+
 }

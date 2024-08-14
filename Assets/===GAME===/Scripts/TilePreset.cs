@@ -20,10 +20,15 @@ public class TilePreset : ScriptableObject
     [SerializeField] Sprite spritesStone;
     [SerializeField] Sprite spritesBomb;
     [SerializeField] Sprite spritesSawBlade;
+    [SerializeField] Sprite spriteTurning;
 
     public Sprite GetAssetArrow(Direction direction) => sprites[(int)direction];
     public Sprite GetAssetStone() => spritesStone;
     public Sprite GetAssetBomb() => spritesBomb;
     public Sprite GetAssetSawBlade() => spritesSawBlade;
+    public Sprite GetAssetTurning() => spriteTurning;
+
+    public ArrowPz arrowPrefab;
+    public GameObject nodePrefab;
 
 }

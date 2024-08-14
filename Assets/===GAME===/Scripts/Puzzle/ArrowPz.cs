@@ -11,11 +11,13 @@ public class ArrowPz : TileBase
 
 
     [SerializeField, EnumToggleButtons, HideLabel] Direction direction;
+    public void SetDirection(Direction dir) => direction = dir;
+    public Direction GetDirection() => direction;
     protected override void Awake()
     {
         base.Awake();
-        mapTile.onMoveTile += OnMove1Tile;
     }
+    public void AddActionOnMoveTile() => mapTile.onMoveTile += OnMove1Tile;
     public override void OnDestroyTile()
     {
         mapTile.TotalArrow--;
@@ -27,9 +29,10 @@ public class ArrowPz : TileBase
         base.OnMove1Tile(_x, _y);
     }
 
-    public override void OnTap()
+    public override void OnTap(out bool canTap)
     {
-        base.OnTap();
+        base.OnTap(out canTap);
+        canTap = true;
         MoveTile();
     }
 
@@ -47,25 +50,37 @@ public class ArrowPz : TileBase
 
     Node targetFind = null;
     [BoxGroup("Move Tile"), Button("Find target node", ButtonSizes.Medium)]
-    public void FindNode()
+    public bool FindNode()
     {
         resultX = x; resultY = y;
         if (!FindtargetNode(out targetFind))
         {
             if (targetFind == null)
             {
-                Debug.LogError("STAY!");
+                //Debug.LogError("STAY!");
             }
             else
-                Debug.LogError("Find " + targetFind.name);
+            {
+                if (targetFind.IsLock && targetFind.IsTrafficPole)
+                    Debug.LogError("Find lock bt traffic" + targetFind.name);
+                else
+                    Debug.LogError("Find " + targetFind.name);
+            }
+            return false;
         }
         else
         {
-            Debug.LogError("Out");
+            //Debug.LogError("Out");
+            return true;
         }
     }
 
     int resultX, resultY, nextX, nextY;
+    /// <summary>
+    /// Func check wayout of tile in map node
+    /// </summary>
+    /// <param name="target"> target node if tile stop in map</param>
+    /// <returns> result = true when tile out map node, if not = false</returns>
     bool FindtargetNode(out Node target)
     {
         nextX = resultX;
@@ -86,6 +101,7 @@ public class ArrowPz : TileBase
                 nextY--;
                 break;
         }
+        // if move out grid
         if (nextX < 0 || nextX >= mapTile.totalX || nextY < 0 || nextY >= mapTile.totalY)
         {
             switch (direction)
@@ -104,10 +120,35 @@ public class ArrowPz : TileBase
                     break;
             }
             target = mapTile.nodes[nextX, nextY];
+            Debug.Log($"<color=green>OUT in {x}-{y} with {direction}</color>");
             return true;
         }
+        // if node is traffic pole and lock
+        if (mapTile.nodes[nextX, nextY].IsLock)
+        {
+            Debug.LogError("!");
+            switch (direction)
+            {
+                case Direction.LEFT:
+                    nextX++;
+                    break;
+                case Direction.RIGHT:
+                    nextX--;
+                    break;
+                case Direction.TOP:
+                    nextY--;
+                    break;
+                case Direction.DOWN:
+                    nextY++;
+                    break;
+            }
+            target = mapTile.nodes[nextX, nextY];
+            return false;
+        }
+        // else check if have tile
         if (mapTile.nodes[nextX, nextY].HaveTile)
         {
+            // if tile is saw blade
             if (mapTile.nodes[nextX, nextY].GetTile().Type == Type_Tile.Saw_Blade)
             {
                 Debug.Log("1");
@@ -129,12 +170,13 @@ public class ArrowPz : TileBase
                     nextY++;
                     break;
             }
+            // if target node is itself
             if (nextX == x && nextY == y)
                 target = null;
+            // else not
             else
             {
                 target = mapTile.nodes[nextX, nextY];
-                Debug.Log("2");
             }
             return false;
         }
@@ -154,14 +196,15 @@ public class ArrowPz : TileBase
     public void MoveTile(bool isNewMove = true)
     {
         if (TypeOverlay != Type_Overlay.None) return;
-        if (isNewMove)
-            mapTile.onMoveTile?.Invoke(x, y);
+
         resultX = x; resultY = y;
         if (!FindtargetNode(out targetFind))
         {
             if (targetFind == null)
             {
                 Debug.LogError("STAY!");
+                if (isNewMove)
+                    mapTile.onMoveTile?.Invoke(x, y);
             }
             else
             {
@@ -169,11 +212,10 @@ public class ArrowPz : TileBase
                 transform.DOMove(targetFind.transform.position, .5f)
                     .OnComplete(() =>
                     {
-                        if (targetFind.GetTile().Type == Type_Tile.Saw_Blade)
-                        {
-                            OnDestroyTile();
-                            return;
-                        }
+                        if (isNewMove)
+                            mapTile.onMoveTile?.Invoke(x, y);
+                        // Destroy when move into saw blade
+
                         mapTile.nodes[x, y].SetTile(null);
                         targetFind.SetTile(this);
                         X = targetFind.X; Y = targetFind.Y;
@@ -183,7 +225,10 @@ public class ArrowPz : TileBase
                             direction = targetFind.GetDirection();
                             MoveTile(false);
                         }
-
+                        if (targetFind.GetTile().Type == Type_Tile.Saw_Blade)
+                        {
+                            OnDestroyTile();
+                        }
                     });
             }
         }
@@ -209,7 +254,8 @@ public class ArrowPz : TileBase
             transform.DOMove(target, .2f)
                 .OnComplete(() =>
                 {
-                    Debug.Log(gameObject.name);
+                    if (isNewMove)
+                        mapTile.onMoveTile?.Invoke(x, y);
                     OnDestroyTile();
                 });
             Debug.LogError("Out");

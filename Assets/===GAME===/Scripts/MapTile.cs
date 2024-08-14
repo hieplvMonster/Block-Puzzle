@@ -34,7 +34,7 @@ public class MapTile : MonoBehaviour
             for (int j = 0; j < totalY; j++)
             {
                 //nodes[i, j].Setup(i, j, this);
-                Debug.Log(nodes[i, j].gameObject.name);
+                //Debug.Log(nodes[i, j].gameObject.name);
             }
     }
     private void Start()

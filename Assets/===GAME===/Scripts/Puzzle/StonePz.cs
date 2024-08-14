@@ -10,9 +10,9 @@ public class StonePz : TileBase
     protected override void Awake()
     {
     }
-    public override void OnTap()
+    public override void OnTap(out bool canTap)
     {
-
+        canTap = false;
     }
     public override void SetMapTile(MapTile mapTile)
     {
@@ -21,12 +21,9 @@ public class StonePz : TileBase
     [Button("Set Visual Tile")]
     public override void SetVisual()
     {
-        mainSprite.GetComponent<SpriteRenderer>().sprite = TilePreset.Instance.GetAssetStone();
     }
     public override void OnDestroyTile()
     {
-        // TODO: 
-        // Animation break stone
         base.OnDestroyTile();
     }
 }

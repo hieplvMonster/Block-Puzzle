@@ -11,9 +11,9 @@ public class SawBladePz : TileBase
     {
         // TODO: animation rotate
     }
-    public override void OnTap()
+    public override void OnTap(out bool canTap)
     {
-
+        canTap = false;
     }
     public override void SetMapTile(MapTile mapTile)
     {
@@ -26,6 +26,6 @@ public class SawBladePz : TileBase
     }
     public override void OnDestroyTile()
     {
-
+        base.OnDestroyTile();
     }
 }
